@@ -1,7 +1,7 @@
 # LFriender
 
-#About the application
+# About the application
 This is a simple application created to update your friendship achievements on Habbo Unity.
 
-#Creator
+# Creator
 Discord: luizin#1706
