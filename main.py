@@ -39,7 +39,7 @@ extension.start()
 print('[LFriender] -> Application started. \n\n')
 
 def send_request(friend):
-    extension.send_to_server(HPacket(39, friend))
+    extension.send_to_server(HPacket(RequestFriend, friend))
 
 def Friender(message):
     global Users
