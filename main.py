@@ -34,7 +34,6 @@ global r_Users
 ext_info = {"title": "LFriender", "description": "Up your friendship achievements", "author": "Luizin", "version": "1.0"}
 
 extension = Extension(ext_info, sys.argv)
-print('Press Ctrl + C to stop the application.\n')
 Users = UnityRoomUsers(extension)
 extension.start()
 print('[LFriender] -> Application started. \n\n')
