@@ -26,7 +26,6 @@ from g_python.hdirection import Direction
 from g_python.hpacket import HPacket
 
 RequestFriend = 39
-RequestRoomLoad = 391
 UsersInRoom = 28
 
 global r_Users
