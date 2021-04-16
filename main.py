@@ -20,34 +20,75 @@ Check()
 
 ###############################################################
 
+from time import sleep
 from g_python.gextension import Extension
-from g_python.hunitytools import UnityRoomUsers
 from g_python.hdirection import Direction
 from g_python.hpacket import HPacket
+from g_python.hparsers import HEntity, HEntityType
+from g_python.hunityparsers import HUnityEntity, HEntityType
 
-RequestFriend = 39
-UsersInRoom = 28
+extension_info = {
+    "title": "LFriends",
+    "description": "Application to add friends",
+    "author": "Luizin",
+    "version": "1.1"
+}
 
-global r_Users
+ext = Extension(extension_info, args=sys.argv)
+ext.start()
 
-ext_info = {"title": "LFriender", "description": "Up your friendship achievements", "author": "Luizin", "version": "1.0"}
+def client_type():
+    sleep(0.30)
+    return ext.connection_info["client_type"]
 
-extension = Extension(ext_info, sys.argv)
-Users = UnityRoomUsers(extension)
-extension.start()
-print('[LFriender] -> Application started. \n\n')
+client_type = client_type()
 
-def send_request(friend):
-    extension.send_to_server(HPacket(RequestFriend, friend))
+isFlash = None
 
-def Friender(message):
-    global Users
-    invited = 0
-    for user in Users.room_users.values():
-        invited += 1
-        _nickname = user.name.strip()
-        send_request(_nickname)
-        print(f'[LFriender] -> I sent a friend request to : {_nickname}')
-    print(f'\n\n[LFriender] -> I sent a friend request to {invited} people.\n\n')
+if str(client_type).startswith("FLASH"):
+    client_type = "FLASH"
+else:
+    client_type = "UNITY"
 
-extension.intercept(Direction.TO_CLIENT, Friender, UsersInRoom)
+print(f'[LFriender] ~ Application Started. Client Type: {client_type}\n\n')
+
+headers = {}
+
+if client_type == "FLASH":
+    headers = {
+        "RoomUsers": 812,
+        "RequestFriend": 3639,
+        "MessengerError": 2095
+    }
+else:
+    headers = {
+        "RoomUsers": 28,
+        "RequestFriend": 39,
+        "MessengerError": 260
+    }
+
+counter = -1
+
+def DetectUsers(message):
+    global counter
+    packet = message.packet
+    if client_type == "FLASH":
+        entity = HEntity.parse(packet)
+        for user in entity:
+            if user.entity_type == HEntityType.HABBO:
+                counter += 1
+                ext.send_to_server(HPacket(headers["RequestFriend"], str(user.name).strip()))
+                print(f"[LFriender] ~ Request sent to: {counter} users.", end='\r')
+    else:
+        entity = HUnityEntity.parse(packet)
+        for user in entity:
+            if user.entity_type == HEntityType.HABBO:
+                counter += 1
+                ext.send_to_server(HPacket(headers["RequestFriend"], str(user.name).strip()))
+                print(f"[LFriender] ~ Request sent to: {counter} users.", end='\r')
+
+def BlockMessageError(msg):
+    msg.is_blocked = True
+
+ext.intercept(Direction.TO_CLIENT, DetectUsers, headers["RoomUsers"])
+ext.intercept(Direction.TO_CLIENT, BlockMessageError, headers["MessengerError"])
